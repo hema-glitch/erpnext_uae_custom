@@ -284,8 +284,14 @@ def get_expense_claim_standard_rated_total(filters):
         FROM `tabExpense Claim Detail` ecd
         INNER JOIN `tabExpense Claim` ec ON ec.name = ecd.parent
         WHERE ec.docstatus = 1
+        AND EXISTS (
+            SELECT 1 FROM `tabExpense Taxes and Charges` ect
+            WHERE ect.parent = ec.name
+            AND ect.tax_amount > 0
+        )
         {conditions}
     """.format(conditions=conditions), filters)[0][0] or 0
+
 
 def get_expense_claim_standard_rated_tax(filters):
     conditions = get_conditions(filters)
@@ -294,8 +300,10 @@ def get_expense_claim_standard_rated_tax(filters):
         FROM `tabExpense Taxes and Charges` ect
         INNER JOIN `tabExpense Claim` ec ON ec.name = ect.parent
         WHERE ec.docstatus = 1
+        AND ect.tax_amount > 0
         {conditions}
     """.format(conditions=conditions), filters)[0][0] or 0
+
 
 
 def get_tourist_tax_return_total(filters):
