@@ -282,7 +282,7 @@ def get_expense_claim_standard_rated_total(filters):
     conditions = get_conditions(filters)
     return frappe.db.sql("""
         select
-            sum(ecd.base_amount)
+            sum(ecd.amount)
         from
             `tabExpense Claim Detail` ecd
         inner join
@@ -293,7 +293,6 @@ def get_expense_claim_standard_rated_total(filters):
             and ifnull(ecd.is_exempt, 0) != 1
             {conditions}
     """.format(conditions=conditions), filters)[0][0] or 0
-
 
 def get_expense_claim_standard_rated_tax(filters):
     conditions = get_conditions(filters)
@@ -308,6 +307,7 @@ def get_expense_claim_standard_rated_tax(filters):
             ec.docstatus = 1
             {conditions}
     """.format(conditions=conditions), filters)[0][0] or 0
+
 
 def get_tourist_tax_return_total(filters):
 	"""Returns the sum of the total of each Sales invoice with non zero tourist_tax_return."""
