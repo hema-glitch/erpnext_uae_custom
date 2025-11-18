@@ -112,15 +112,15 @@ after_install = "erpnext_uae_custom.install.after_install"
 #	}
 # }
 
-doc_events = {
-	"Purchase Invoice": {
-		"validate": [
-			"erpnext_uae_custom.utils.update_itc_availed_fields",
-			"erpnext_uae_custom.utils.update_grand_total_for_rcm",
-			"erpnext_uae_custom.utils.validate_returns",
-		]
-	}
-}
+# doc_events = {
+# 	"Purchase Invoice": {
+# 		"validate": [
+# 			"erpnext_uae_custom.utils.update_itc_availed_fields",
+# 			"erpnext_uae_custom.utils.update_grand_total_for_rcm",
+# 			"erpnext_uae_custom.utils.validate_returns",
+# 		]
+# 	}
+# }
 
 # Scheduled Tasks
 # ---------------
