@@ -358,35 +358,30 @@ def get_journal_entry_vat(filters):
     # 1️⃣ VAT amount (same logic)
     # -------------------------------
 	vat_sql = f"""
-	SELECT 
-	COALESCE(SUM(jea.debit_in_account_currency - jea.credit_in_account_currency), 0)
-	FROM 
-	`tabJournal Entry Account` jea
-	WHERE 
-	jea.parent IN ({je_names_sql})
-	AND jea.account IN ({vat_accounts_sql})
+    SELECT 
+        COALESCE(SUM(jea.debit_in_account_currency - jea.credit_in_account_currency), 0)
+    FROM 
+        `tabJournal Entry Account` jea
+    WHERE 
+        jea.parent IN ({je_names_sql})
+        AND jea.account IN ({vat_accounts_sql})
 	"""
 	vat = frappe.db.sql(vat_sql)[0][0] or 0
+
 
 	# -------------------------------
 	# 2️⃣ Expense total (same logic)
 	# -------------------------------
-	total_sql = f"""
-	SELECT 
-	COALESCE(SUM(
-	CASE 
-	WHEN (jea.debit_in_account_currency - jea.credit_in_account_currency) > 0
-	THEN (jea.debit_in_account_currency - jea.credit_in_account_currency)
-	ELSE 0
-	END
-	), 0)
-	FROM 
-	`tabJournal Entry Account` jea
-	WHERE 
-	jea.parent IN ({je_names_sql})
-	AND jea.account NOT IN ({vat_accounts_sql})
+	vat_sql = f"""
+    SELECT 
+        COALESCE(SUM(jea.debit_in_account_currency - jea.credit_in_account_currency), 0)
+    FROM 
+        `tabJournal Entry Account` jea
+    WHERE 
+        jea.parent IN ({je_names_sql})
+        AND jea.account IN ({vat_accounts_sql})
 	"""
-	total = frappe.db.sql(total_sql)[0][0] or 0
+	vat = frappe.db.sql(vat_sql)[0][0] or 0
 
     return total, vat
 
