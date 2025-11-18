@@ -104,9 +104,23 @@ def append_emiratewise_expenses(data, emirates, amounts_by_emirate):
 def append_vat_on_expenses(data, filters):
 	"""Appends Expenses and All Other Inputs."""
 	append_data(data, '', _('VAT on Expenses and All Other Inputs'), '', '')
-	append_data(data, '9', _('Standard Rated Expenses'),
-		frappe.format(get_standard_rated_expenses_total(filters), 'Currency'),
-		frappe.format(get_standard_rated_expenses_tax(filters), 'Currency'))
+
+	standard_total = (
+	    get_standard_rated_expenses_total(filters)
+	    + get_expense_claim_standard_rated_total(filters)
+	)
+
+	standard_tax = (
+	    get_standard_rated_expenses_tax(filters)
+	    + get_expense_claim_standard_rated_tax(filters)
+	)
+
+	append_data(
+	    data, '9', _('Standard Rated Expenses'),
+	    frappe.format(standard_total, 'Currency'),
+	    frappe.format(standard_tax, 'Currency')
+	)
+
 	append_data(data, '10', _('Supplies subject to the reverse charge provision'),
 		frappe.format(get_reverse_charge_recoverable_total(filters), 'Currency'),
 		frappe.format(get_reverse_charge_recoverable_tax(filters), 'Currency'))
@@ -263,6 +277,37 @@ def get_standard_rated_expenses_tax(filters):
 		)[0][0]  or 0
 	except (IndexError, TypeError):
 		return 0
+
+def get_expense_claim_standard_rated_total(filters):
+    conditions = get_conditions(filters)
+    return frappe.db.sql("""
+        select
+            sum(ecd.base_amount)
+        from
+            `tabExpense Claim Detail` ecd
+        inner join
+            `tabExpense Claim` ec on ec.name = ecd.parent
+        where
+            ec.docstatus = 1
+            and ifnull(ecd.is_zero_rated, 0) != 1
+            and ifnull(ecd.is_exempt, 0) != 1
+            {conditions}
+    """.format(conditions=conditions), filters)[0][0] or 0
+
+
+def get_expense_claim_standard_rated_tax(filters):
+    conditions = get_conditions(filters)
+    return frappe.db.sql("""
+        select
+            sum(ect.tax_amount)
+        from
+            `tabExpense Claim Taxes and Charges` ect
+        inner join
+            `tabExpense Claim` ec on ec.name = ect.parent
+        where
+            ec.docstatus = 1
+            {conditions}
+    """.format(conditions=conditions), filters)[0][0] or 0
 
 def get_tourist_tax_return_total(filters):
 	"""Returns the sum of the total of each Sales invoice with non zero tourist_tax_return."""
