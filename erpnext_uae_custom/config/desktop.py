@@ -3,7 +3,7 @@ from frappe import _
 def get_data():
 	return [
 		{
-			"module_name": "ERPNext UAE Custom",
+			"module_name": "erpnext_uae_custom",
 			"color": "grey",
 			"icon": "octicon octicon-file-directory",
 			"type": "module",
