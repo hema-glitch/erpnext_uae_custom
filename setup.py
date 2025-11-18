@@ -11,7 +11,7 @@ setup(
 	version=version,
 	description="Frappe app tbuilt on top of ERPNext to hold regional settings for Unitedd Arab Emirates",
 	author="Frappe Technologies Private Limited",
-	author_email="diksha@frappe.io",
+	author_email="hema@aceassured.com",
 	packages=find_packages(),
 	zip_safe=False,
 	include_package_data=True,
