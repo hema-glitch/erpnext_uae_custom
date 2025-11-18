@@ -310,7 +310,12 @@ def get_expense_claim_standard_rated_tax(filters):
     """.format(conditions=conditions), filters)[0][0] or 0
 
 def get_journal_entry_vat(filters):
-    conditions = get_conditions(filters)
+    conditions = ""
+
+    if filters.get("from_date"):
+        conditions += " AND je.posting_date >= %(from_date)s"
+    if filters.get("to_date"):
+        conditions += " AND je.posting_date <= %(to_date)s"
 
     # Fetch VAT accounts configured in UAE VAT Account
     vat_accounts = frappe.db.get_all(
@@ -318,18 +323,25 @@ def get_journal_entry_vat(filters):
         filters={"parent": filters.get("company")},
         fields=["account"]
     )
+
     vat_accounts = [d.account for d in vat_accounts]
 
     if not vat_accounts:
-        return 0, 0  # No VAT accounts configured
+        return 0, 0
 
-    accounts_sql = ", ".join([f"'{acc}'" for acc in vat_accounts])
+    accounts_sql = ", ".join([f"%({i})s" for i in range(len(vat_accounts))])
 
-    # Fetch VAT totals from Journal Entry rows
-    return frappe.db.sql(f"""
+    # Build params dict
+    params = {
+        "company": filters.get("company"),
+        **{str(i): vat_accounts[i] for i in range(len(vat_accounts))},
+        **filters
+    }
+
+    query = f"""
         SELECT 
             SUM(jea.debit_in_account_currency) AS total,
-            SUM(jea.credit_in_account_currency) AS tax
+            SUM(jea.debit_in_account_currency) AS tax
         FROM 
             `tabJournal Entry Account` jea
         INNER JOIN 
@@ -339,7 +351,9 @@ def get_journal_entry_vat(filters):
             AND je.company = %(company)s
             {conditions}
             AND jea.account IN ({accounts_sql})
-    """, filters)[0]
+    """
+
+    return frappe.db.sql(query, params)[0]
 
 
 def get_tourist_tax_return_total(filters):
