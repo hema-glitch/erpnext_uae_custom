@@ -1,12 +1,12 @@
 from . import __version__ as app_version
 
 app_name = "erpnext_uae_custom"
-app_title = "ERPNext UAE"
+app_title = "ERPNext UAE Custom"
 app_publisher = "Frappe Technologies Private Limited"
 app_description = "Frappe app tbuilt on top of ERPNext to hold regional settings for Unitedd Arab Emirates"
 app_icon = "octicon octicon-file-directory"
 app_color = "grey"
-app_email = "diksha@frappe.io"
+app_email = "hema@aceassured.com"
 app_license = "MIT"
 
 # Includes in <head>
