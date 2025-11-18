@@ -312,7 +312,7 @@ def get_expense_claim_standard_rated_tax(filters):
 def get_journal_entry_vat(filters):
     conditions = get_conditions(filters)
 
-    # Fetch VAT accounts configured in UAE VAT Account
+    # Fetch VAT accounts
     vat_accounts = frappe.db.get_all(
         "UAE VAT Account",
         filters={"parent": filters.get("company")},
@@ -321,73 +321,61 @@ def get_journal_entry_vat(filters):
     vat_accounts = [d.account for d in vat_accounts]
 
     if not vat_accounts:
-        return 0, 0  # No VAT accounts configured
+        return 0, 0
 
-    # Build SQL safe VAT account list
-    vat_accounts_sql = ", ".join([frappe.db.escape(acc) for acc in vat_accounts])
+    vat_accounts_sql = ", ".join([frappe.db.escape(a) for a in vat_accounts])
 
-    # -------------------------------------------------------
-    # Filter: Journal Entries must contain VAT + NON-VAT
-    # -------------------------------------------------------
+    # Filter: JE must contain VAT + NON-VAT
     je_filter_sql = f"""
         SELECT DISTINCT je.name
         FROM `tabJournal Entry` je
-        INNER JOIN `tabJournal Entry Account` jea_vat 
-            ON jea_vat.parent = je.name
-        INNER JOIN `tabJournal Entry Account` jea_nonvat
-            ON jea_nonvat.parent = je.name
+        INNER JOIN `tabJournal Entry Account` vat 
+            ON vat.parent = je.name
+        INNERJOIN `tabJournal Entry Account` nonvat
+            ON nonvat.parent = je.name
         WHERE 
             je.docstatus = 1
             AND je.company = %(company)s
             {conditions}
-            AND jea_vat.account IN ({vat_accounts_sql})
-            AND jea_nonvat.account NOT IN ({vat_accounts_sql})
+            AND vat.account IN ({vat_accounts_sql})
+            AND nonvat.account NOT IN ({vat_accounts_sql})
     """
-
     je_names = frappe.db.sql(je_filter_sql, filters)
 
     if not je_names:
-        return 0, 0  # No valid JE with VAT + non-VAT
+        return 0, 0
 
-    # Build safe JE IN() list
-    je_names_sql = ", ".join([frappe.db.escape(j[0]) for j in je_names])
+    je_list = ", ".join([frappe.db.escape(j[0]) for j in je_names])
 
-    # -------------------------------
-    # 1️⃣ Correct VAT calculation
-    # -------------------------------
+    # 1️⃣ VAT = sum(net movement on VAT accounts)
     vat_sql = f"""
-        SELECT 
-            COALESCE(SUM(jea.debit_in_account_currency - jea.credit_in_account_currency), 0)
-        FROM 
-            `tabJournal Entry Account` jea
+        SELECT COALESCE(SUM(
+            jea.debit_in_account_currency - jea.credit_in_account_currency
+        ), 0)
+        FROM `tabJournal Entry Account` jea
         WHERE 
-            jea.parent IN ({je_names_sql})
+            jea.parent IN ({je_list})
             AND jea.account IN ({vat_accounts_sql})
     """
     vat = frappe.db.sql(vat_sql)[0][0] or 0
 
-    # -------------------------------
-    # 2️⃣ Correct Amount calculation
-    # (only positive net debits from NON-VAT accounts)
-    # -------------------------------
-    total_sql = f"""
-        SELECT 
-            COALESCE(SUM(
-                CASE 
-                    WHEN (jea.debit_in_account_currency - jea.credit_in_account_currency) > 0
-                    THEN (jea.debit_in_account_currency - jea.credit_in_account_currency)
-                    ELSE 0
-                END
-            ), 0)
-        FROM 
-            `tabJournal Entry Account` jea
+    # 2️⃣ Amount = ONLY positive net debit from NON-VAT rows
+    amount_sql = f"""
+        SELECT COALESCE(SUM(
+            CASE 
+                WHEN (jea.debit_in_account_currency - jea.credit_in_account_currency) > 0
+                THEN (jea.debit_in_account_currency - jea.credit_in_account_currency)
+                ELSE 0
+            END
+        ), 0)
+        FROM `tabJournal Entry Account` jea
         WHERE 
-            jea.parent IN ({je_names_sql})
+            jea.parent IN ({je_list})
             AND jea.account NOT IN ({vat_accounts_sql})
     """
-    total = frappe.db.sql(total_sql)[0][0] or 0
+    amount = frappe.db.sql(amount_sql)[0][0] or 0
 
-    return total, vat
+    return amount, vat
 
 
 def get_tourist_tax_return_total(filters):
