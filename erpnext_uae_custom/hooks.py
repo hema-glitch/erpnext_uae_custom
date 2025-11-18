@@ -1,6 +1,6 @@
 from . import __version__ as app_version
 
-app_name = "erpnext_uae"
+app_name = "erpnext_uae_custom"
 app_title = "ERPNext UAE"
 app_publisher = "Frappe Technologies Private Limited"
 app_description = "Frappe app tbuilt on top of ERPNext to hold regional settings for Unitedd Arab Emirates"
@@ -13,15 +13,15 @@ app_license = "MIT"
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/erpnext_uae/css/erpnext_uae.css"
-# app_include_js = "/assets/erpnext_uae/js/erpnext_uae.js"
+# app_include_css = "/assets/erpnext_uae_custom/css/erpnext_uae_custom.css"
+# app_include_js = "/assets/erpnext_uae_custom/js/erpnext_uae_custom.js"
 
 # include js, css files in header of web template
-# web_include_css = "/assets/erpnext_uae/css/erpnext_uae.css"
-# web_include_js = "/assets/erpnext_uae/js/erpnext_uae.js"
+# web_include_css = "/assets/erpnext_uae_custom/css/erpnext_uae_custom.css"
+# web_include_js = "/assets/erpnext_uae_custom/js/erpnext_uae_custom.js"
 
 # include custom scss in every website theme (without file extension ".scss")
-# website_theme_scss = "erpnext_uae/public/scss/website"
+# website_theme_scss = "erpnext_uae_custom/public/scss/website"
 
 # include js, css files in header of web form
 # webform_include_js = {"doctype": "public/js/doctype.js"}
@@ -58,27 +58,27 @@ app_license = "MIT"
 
 # add methods and filters to jinja environment
 # jinja = {
-# 	"methods": "erpnext_uae.utils.jinja_methods",
-# 	"filters": "erpnext_uae.utils.jinja_filters"
+# 	"methods": "erpnext_uae_custom.utils.jinja_methods",
+# 	"filters": "erpnext_uae_custom.utils.jinja_filters"
 # }
 
 # Installation
 # ------------
 
-# before_install = "erpnext_uae.install.before_install"
-after_install = "erpnext_uae.install.after_install"
+# before_install = "erpnext_uae_custom.install.before_install"
+after_install = "erpnext_uae_custom.install.after_install"
 
 # Uninstallation
 # ------------
 
-# before_uninstall = "erpnext_uae.uninstall.before_uninstall"
-# after_uninstall = "erpnext_uae.uninstall.after_uninstall"
+# before_uninstall = "erpnext_uae_custom.uninstall.before_uninstall"
+# after_uninstall = "erpnext_uae_custom.uninstall.after_uninstall"
 
 # Desk Notifications
 # ------------------
 # See frappe.core.notifications.get_notification_config
 
-# notification_config = "erpnext_uae.notifications.get_notification_config"
+# notification_config = "erpnext_uae_custom.notifications.get_notification_config"
 
 # Permissions
 # -----------
@@ -115,9 +115,9 @@ after_install = "erpnext_uae.install.after_install"
 doc_events = {
 	"Purchase Invoice": {
 		"validate": [
-			"erpnext_uae.utils.update_itc_availed_fields",
-			"erpnext_uae.utils.update_grand_total_for_rcm",
-			"erpnext_uae.utils.validate_returns",
+			"erpnext_uae_custom.utils.update_itc_availed_fields",
+			"erpnext_uae_custom.utils.update_grand_total_for_rcm",
+			"erpnext_uae_custom.utils.validate_returns",
 		]
 	}
 }
@@ -127,39 +127,39 @@ doc_events = {
 
 # scheduler_events = {
 # 	"all": [
-# 		"erpnext_uae.tasks.all"
+# 		"erpnext_uae_custom.tasks.all"
 # 	],
 # 	"daily": [
-# 		"erpnext_uae.tasks.daily"
+# 		"erpnext_uae_custom.tasks.daily"
 # 	],
 # 	"hourly": [
-# 		"erpnext_uae.tasks.hourly"
+# 		"erpnext_uae_custom.tasks.hourly"
 # 	],
 # 	"weekly": [
-# 		"erpnext_uae.tasks.weekly"
+# 		"erpnext_uae_custom.tasks.weekly"
 # 	],
 # 	"monthly": [
-# 		"erpnext_uae.tasks.monthly"
+# 		"erpnext_uae_custom.tasks.monthly"
 # 	],
 # }
 
 # Testing
 # -------
 
-# before_tests = "erpnext_uae.install.before_tests"
+# before_tests = "erpnext_uae_custom.install.before_tests"
 
 # Overriding Methods
 # ------------------------------
 #
 # override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "erpnext_uae.event.get_events"
+# 	"frappe.desk.doctype.event.event.get_events": "erpnext_uae_custom.event.get_events"
 # }
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
 # override_doctype_dashboards = {
-# 	"Task": "erpnext_uae.task.get_dashboard_data"
+# 	"Task": "erpnext_uae_custom.task.get_dashboard_data"
 # }
 
 # exempt linked doctypes from being automatically cancelled
@@ -195,12 +195,12 @@ doc_events = {
 # --------------------------------
 
 # auth_hooks = [
-# 	"erpnext_uae.auth.validate"
+# 	"erpnext_uae_custom.auth.validate"
 # ]
 
 regional_overrides = {
 	'United Arab Emirates': {
-		'erpnext.controllers.taxes_and_totals.update_itemised_tax_data': 'erpnext_uae.utils.update_itemised_tax_data',
-		'erpnext.accounts.doctype.purchase_invoice.purchase_invoice.make_regional_gl_entries': 'erpnext_uae.utils.make_regional_gl_entries',
+		'erpnext.controllers.taxes_and_totals.update_itemised_tax_data': 'erpnext_uae_custom.utils.update_itemised_tax_data',
+		'erpnext.accounts.doctype.purchase_invoice.purchase_invoice.make_regional_gl_entries': 'erpnext_uae_custom.utils.make_regional_gl_entries',
 	},
 }

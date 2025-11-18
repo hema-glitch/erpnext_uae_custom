@@ -126,19 +126,19 @@ def make_custom_fields():
 	create_custom_fields(custom_fields)
 
 def add_print_formats():
-	frappe.reload_doc("erpnext_uae", "print_format", "detailed_tax_invoice")
-	frappe.reload_doc("erpnext_uae", "print_format", "simplified_tax_invoice")
-	frappe.reload_doc("erpnext_uae", "print_format", "tax_invoice")
+	frappe.reload_doc("erpnext_uae_custom", "print_format", "detailed_tax_invoice")
+	frappe.reload_doc("erpnext_uae_custom", "print_format", "simplified_tax_invoice")
+	frappe.reload_doc("erpnext_uae_custom", "print_format", "tax_invoice")
 
 	frappe.db.sql(""" update `tabPrint Format` set disabled = 0 where
 		name in('Simplified Tax Invoice', 'Detailed Tax Invoice', 'Tax Invoice') """)
 
 def add_custom_roles_for_reports():
-	"""Add Access Control to UAE VAT 201."""
-	if not frappe.db.get_value('Custom Role', dict(report='UAE VAT 201')):
+	"""Add Access Control to UAE VAT 201 Extended."""
+	if not frappe.db.get_value('Custom Role', dict(report='UAE VAT 201 Extended')):
 		frappe.get_doc(dict(
 			doctype='Custom Role',
-			report='UAE VAT 201',
+			report='UAE VAT 201 Extended',
 			roles= [
 				dict(role='Accounts User'),
 				dict(role='Accounts Manager'),
