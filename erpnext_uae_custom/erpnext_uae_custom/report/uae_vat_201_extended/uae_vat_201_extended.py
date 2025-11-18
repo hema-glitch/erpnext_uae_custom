@@ -310,38 +310,25 @@ def get_expense_claim_standard_rated_tax(filters):
     """.format(conditions=conditions), filters)[0][0] or 0
 
 def get_journal_entry_vat(filters):
-    conditions = ""
+    conditions = get_conditions(filters)
 
-    if filters.get("from_date"):
-        conditions += " AND je.posting_date >= %(from_date)s"
-    if filters.get("to_date"):
-        conditions += " AND je.posting_date <= %(to_date)s"
-
-    # Fetch VAT accounts configured in UAE VAT Account
+    # VAT accounts
     vat_accounts = frappe.db.get_all(
         "UAE VAT Account",
         filters={"parent": filters.get("company")},
         fields=["account"]
     )
-
     vat_accounts = [d.account for d in vat_accounts]
 
     if not vat_accounts:
         return 0, 0
 
-    accounts_sql = ", ".join([f"%({i})s" for i in range(len(vat_accounts))])
+    vat_accounts_sql = ", ".join([f"'{acc}'" for acc in vat_accounts])
 
-    # Build params dict
-    params = {
-        "company": filters.get("company"),
-        **{str(i): vat_accounts[i] for i in range(len(vat_accounts))},
-        **filters
-    }
-
-    query = f"""
+    # 1️⃣ Get VAT amounts from VAT accounts
+    vat = frappe.db.sql(f"""
         SELECT 
-            SUM(jea.debit_in_account_currency) AS total,
-            SUM(jea.debit_in_account_currency) AS tax
+            SUM(jea.debit_in_account_currency) - SUM(jea.credit_in_account_currency)
         FROM 
             `tabJournal Entry Account` jea
         INNER JOIN 
@@ -350,11 +337,25 @@ def get_journal_entry_vat(filters):
             je.docstatus = 1
             AND je.company = %(company)s
             {conditions}
-            AND jea.account IN ({accounts_sql})
-    """
+            AND jea.account IN ({vat_accounts_sql})
+    """, filters)[0][0] or 0
 
-    return frappe.db.sql(query, params)[0]
+    # 2️⃣ Get expense totals from non-VAT accounts
+    total = frappe.db.sql(f"""
+        SELECT 
+            SUM(jea.debit_in_account_currency)
+        FROM 
+            `tabJournal Entry Account` jea
+        INNER JOIN 
+            `tabJournal Entry` je ON je.name = jea.parent
+        WHERE 
+            je.docstatus = 1
+            AND je.company = %(company)s
+            {conditions}
+            AND jea.account NOT IN ({vat_accounts_sql})
+    """, filters)[0][0] or 0
 
+    return total, vat
 
 def get_tourist_tax_return_total(filters):
 	"""Returns the sum of the total of each Sales invoice with non zero tourist_tax_return."""
