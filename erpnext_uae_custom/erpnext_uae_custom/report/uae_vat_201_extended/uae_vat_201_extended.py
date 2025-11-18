@@ -325,21 +325,27 @@ def get_journal_entry_vat(filters):
 
     vat_accounts_sql = ", ".join([frappe.db.escape(a) for a in vat_accounts])
 
-    # Filter: JE must contain VAT + NON-VAT
-    je_filter_sql = f"""
+    # ----------------------------------------
+    # SQL WITHOUT f-string (prevents % conflict)
+    # ----------------------------------------
+    je_filter_sql = """
         SELECT DISTINCT je.name
         FROM `tabJournal Entry` je
         INNER JOIN `tabJournal Entry Account` vat 
             ON vat.parent = je.name
-        INNERJOIN `tabJournal Entry Account` nonvat
+        INNER JOIN `tabJournal Entry Account` nonvat
             ON nonvat.parent = je.name
         WHERE 
             je.docstatus = 1
             AND je.company = %(company)s
             {conditions}
-            AND vat.account IN ({vat_accounts_sql})
-            AND nonvat.account NOT IN ({vat_accounts_sql})
-    """
+            AND vat.account IN ({vat_accounts})
+            AND nonvat.account NOT IN ({vat_accounts})
+    """.format(
+        conditions=conditions,
+        vat_accounts=vat_accounts_sql
+    )
+
     je_names = frappe.db.sql(je_filter_sql, filters)
 
     if not je_names:
@@ -347,20 +353,24 @@ def get_journal_entry_vat(filters):
 
     je_list = ", ".join([frappe.db.escape(j[0]) for j in je_names])
 
-    # 1️⃣ VAT = sum(net movement on VAT accounts)
-    vat_sql = f"""
+    # ------------- VAT (correct) -------------
+    vat_sql = """
         SELECT COALESCE(SUM(
             jea.debit_in_account_currency - jea.credit_in_account_currency
         ), 0)
         FROM `tabJournal Entry Account` jea
         WHERE 
             jea.parent IN ({je_list})
-            AND jea.account IN ({vat_accounts_sql})
-    """
+            AND jea.account IN ({vat_accounts})
+    """.format(
+        je_list=je_list,
+        vat_accounts=vat_accounts_sql
+    )
+
     vat = frappe.db.sql(vat_sql)[0][0] or 0
 
-    # 2️⃣ Amount = ONLY positive net debit from NON-VAT rows
-    amount_sql = f"""
+    # ---------- AMOUNT (correct) ------------
+    amount_sql = """
         SELECT COALESCE(SUM(
             CASE 
                 WHEN (jea.debit_in_account_currency - jea.credit_in_account_currency) > 0
@@ -371,8 +381,12 @@ def get_journal_entry_vat(filters):
         FROM `tabJournal Entry Account` jea
         WHERE 
             jea.parent IN ({je_list})
-            AND jea.account NOT IN ({vat_accounts_sql})
-    """
+            AND jea.account NOT IN ({vat_accounts})
+    """.format(
+        je_list=je_list,
+        vat_accounts=vat_accounts_sql
+    )
+
     amount = frappe.db.sql(amount_sql)[0][0] or 0
 
     return amount, vat
