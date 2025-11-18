@@ -105,15 +105,20 @@ def append_vat_on_expenses(data, filters):
 	"""Appends Expenses and All Other Inputs."""
 	append_data(data, '', _('VAT on Expenses and All Other Inputs'), '', '')
 
+	je_total, je_tax = get_journal_entry_vat(filters)
+
 	standard_total = (
 	get_standard_rated_expenses_total(filters)
 	+ get_expense_claim_standard_rated_total(filters)
+	+ (je_total or 0)
 	)
 
 	standard_tax = (
 	get_standard_rated_expenses_tax(filters)
 	+ get_expense_claim_standard_rated_tax(filters)
+	+ (je_tax or 0)
 	)
+
 	append_data(
 	    data, '9', _('Standard Rated Expenses'),
 	    frappe.format(standard_total, 'Currency'),
@@ -304,6 +309,37 @@ def get_expense_claim_standard_rated_tax(filters):
         {conditions}
     """.format(conditions=conditions), filters)[0][0] or 0
 
+def get_journal_entry_vat(filters):
+    conditions = get_conditions(filters)
+
+    # Fetch VAT accounts configured in UAE VAT Account
+    vat_accounts = frappe.db.get_all(
+        "UAE VAT Account",
+        filters={"parent": filters.get("company")},
+        fields=["account"]
+    )
+    vat_accounts = [d.account for d in vat_accounts]
+
+    if not vat_accounts:
+        return 0, 0  # No VAT accounts configured
+
+    accounts_sql = ", ".join([f"'{acc}'" for acc in vat_accounts])
+
+    # Fetch VAT totals from Journal Entry rows
+    return frappe.db.sql(f"""
+        SELECT 
+            SUM(jea.debit_in_account_currency) AS total,
+            SUM(jea.credit_in_account_currency) AS tax
+        FROM 
+            `tabJournal Entry Account` jea
+        INNER JOIN 
+            `tabJournal Entry` je ON je.name = jea.parent
+        WHERE 
+            je.docstatus = 1
+            AND je.company = %(company)s
+            {conditions}
+            AND jea.account IN ({accounts_sql})
+    """, filters)[0]
 
 
 def get_tourist_tax_return_total(filters):
