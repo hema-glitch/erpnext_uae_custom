@@ -1,7 +1,7 @@
 from . import __version__ as app_version
 
 app_name = "erpnext_uae_custom"
-app_title = "ERPNext UAE Custom"
+app_title = "ERPNext UAE Custom Custom"
 app_publisher = "Frappe Technologies Private Limited"
 app_description = "Frappe app tbuilt on top of ERPNext to hold regional settings for Unitedd Arab Emirates"
 app_icon = "octicon octicon-file-directory"

@@ -1,1 +1,1 @@
-erpnext_uae_custom
+ERPNext UAE Custom
