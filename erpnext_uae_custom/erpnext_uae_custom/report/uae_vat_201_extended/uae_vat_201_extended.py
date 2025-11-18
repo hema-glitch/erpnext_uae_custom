@@ -343,6 +343,8 @@ def get_journal_entry_vat(filters):
             AND je.company = %(company)s
             {conditions}
             AND jea.account IN ({vat_accounts_sql})
+            AND je.is_opening = 0           -- 👈 ADDED: Exclude Opening Entries
+            AND je.voucher_type = 'Journal Entry' -- 👈 ADDED: Filter by Voucher Type
     """
     
     je_names = frappe.db.sql(je_with_vat_sql, filters, as_list=True)
@@ -356,7 +358,7 @@ def get_journal_entry_vat(filters):
 
 
     # -------------------------------
-    # 2️⃣ VAT amount from VAT accounts (UNCHANGED LOGIC, ADDED je_names FILTER)
+    # 2️⃣ VAT amount from VAT accounts
     # -------------------------------
     vat_sql = f"""
         SELECT 
@@ -371,13 +373,15 @@ def get_journal_entry_vat(filters):
             AND je.company = %(company)s
             {conditions}
             AND jea.account IN ({vat_accounts_sql})
-            AND je.name IN ({je_names_sql})  -- Filter to only JEs that have VAT
+            AND je.name IN ({je_names_sql})
+            AND je.is_opening = 0           -- 👈 ADDED: Exclude Opening Entries
+            AND je.voucher_type = 'Journal Entry' -- 👈 ADDED: Filter by Voucher Type
     """
 
     vat = frappe.db.sql(vat_sql, filters)[0][0] or 0
 
     # -------------------------------
-    # 3️⃣ Expense total from NON-VAT accounts (UNCHANGED LOGIC, ADDED je_names FILTER)
+    # 3️⃣ Expense total from NON-VAT accounts
     # -------------------------------
     total_sql = f"""
         SELECT 
@@ -391,7 +395,9 @@ def get_journal_entry_vat(filters):
             AND je.company = %(company)s
             {conditions}
             AND jea.account NOT IN ({vat_accounts_sql})
-            AND je.name IN ({je_names_sql}) -- Filter to only JEs that have VAT
+            AND je.name IN ({je_names_sql})
+            AND je.is_opening = 0           -- 👈 ADDED: Exclude Opening Entries
+            AND je.voucher_type = 'Journal Entry' -- 👈 ADDED: Filter by Voucher Type
     """
 
     total = frappe.db.sql(total_sql, filters)[0][0] or 0
