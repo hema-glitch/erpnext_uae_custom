@@ -199,8 +199,12 @@ doc_events = {
 # ]
 
 regional_overrides = {
-	'United Arab Emirates': {
-		'erpnext.controllers.taxes_and_totals.update_itemised_tax_data': 'erpnext_uae_custom.utils.update_itemised_tax_data',
-		'erpnext.accounts.doctype.purchase_invoice.purchase_invoice.make_regional_gl_entries': 'erpnext_uae_custom.utils.make_regional_gl_entries',
-	},
+    "United Arab Emirates": {
+        "erpnext.controllers.taxes_and_totals.update_itemised_tax_data": [
+            "erpnext_uae_custom.utils.update_itemised_tax_data"
+        ],
+        "erpnext.accounts.doctype.purchase_invoice.purchase_invoice.make_regional_gl_entries": [
+            "erpnext_uae_custom.utils.make_regional_gl_entries"
+        ]
+    }
 }
