@@ -106,15 +106,14 @@ def append_vat_on_expenses(data, filters):
 	append_data(data, '', _('VAT on Expenses and All Other Inputs'), '', '')
 
 	standard_total = (
-	    get_standard_rated_expenses_total(filters)
-	    + get_expense_claim_standard_rated_total(filters)
+	get_standard_rated_expenses_total(filters)
+	+ get_expense_claim_standard_rated_total(filters)
 	)
 
 	standard_tax = (
-	    get_standard_rated_expenses_tax(filters)
-	    + get_expense_claim_standard_rated_tax(filters)
+	get_standard_rated_expenses_tax(filters)
+	+ get_expense_claim_standard_rated_tax(filters)
 	)
-
 	append_data(
 	    data, '9', _('Standard Rated Expenses'),
 	    frappe.format(standard_total, 'Currency'),
@@ -281,31 +280,21 @@ def get_standard_rated_expenses_tax(filters):
 def get_expense_claim_standard_rated_total(filters):
     conditions = get_conditions(filters)
     return frappe.db.sql("""
-        select
-            sum(ecd.amount)
-        from
-            `tabExpense Claim Detail` ecd
-        inner join
-            `tabExpense Claim` ec on ec.name = ecd.parent
-        where
-            ec.docstatus = 1
-            and ifnull(ecd.is_zero_rated, 0) != 1
-            and ifnull(ecd.is_exempt, 0) != 1
-            {conditions}
+        SELECT SUM(ecd.amount)
+        FROM `tabExpense Claim Detail` ecd
+        INNER JOIN `tabExpense Claim` ec ON ec.name = ecd.parent
+        WHERE ec.docstatus = 1
+        {conditions}
     """.format(conditions=conditions), filters)[0][0] or 0
 
 def get_expense_claim_standard_rated_tax(filters):
     conditions = get_conditions(filters)
     return frappe.db.sql("""
-        select
-            sum(ect.tax_amount)
-        from
-            `tabExpense Claim Taxes and Charges` ect
-        inner join
-            `tabExpense Claim` ec on ec.name = ect.parent
-        where
-            ec.docstatus = 1
-            {conditions}
+        SELECT SUM(ect.tax_amount)
+        FROM `tabExpense Taxes and Charges` ect
+        INNER JOIN `tabExpense Claim` ec ON ec.name = ect.parent
+        WHERE ec.docstatus = 1
+        {conditions}
     """.format(conditions=conditions), filters)[0][0] or 0
 
 
