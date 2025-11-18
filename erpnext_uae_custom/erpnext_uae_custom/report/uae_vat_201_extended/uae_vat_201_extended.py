@@ -312,7 +312,7 @@ def get_expense_claim_standard_rated_tax(filters):
 def get_journal_entry_vat(filters):
     conditions = get_conditions(filters)
 
-    # VAT accounts
+    # Fetch VAT accounts configured in UAE VAT Account
     vat_accounts = frappe.db.get_all(
         "UAE VAT Account",
         filters={"parent": filters.get("company")},
@@ -321,14 +321,18 @@ def get_journal_entry_vat(filters):
     vat_accounts = [d.account for d in vat_accounts]
 
     if not vat_accounts:
-        return 0, 0
+        return 0, 0  # No VAT accounts configured
 
-    vat_accounts_sql = ", ".join([f"'{acc}'" for acc in vat_accounts])
+    # Build a safe SQL list
+    vat_accounts_sql = ", ".join([frappe.db.escape(acc) for acc in vat_accounts])
 
-    # 1️⃣ Get VAT amounts from VAT accounts
-    vat = frappe.db.sql(f"""
+    # -------------------------------
+    # 1️⃣ VAT amount from VAT accounts
+    # -------------------------------
+    vat_sql = f"""
         SELECT 
-            SUM(jea.debit_in_account_currency) - SUM(jea.credit_in_account_currency)
+            COALESCE(SUM(jea.debit_in_account_currency) 
+            - SUM(jea.credit_in_account_currency), 0)
         FROM 
             `tabJournal Entry Account` jea
         INNER JOIN 
@@ -338,12 +342,16 @@ def get_journal_entry_vat(filters):
             AND je.company = %(company)s
             {conditions}
             AND jea.account IN ({vat_accounts_sql})
-    """, filters)[0][0] or 0
+    """
 
-    # 2️⃣ Get expense totals from non-VAT accounts
-    total = frappe.db.sql(f"""
+    vat = frappe.db.sql(vat_sql, filters)[0][0] or 0
+
+    # -------------------------------
+    # 2️⃣ Expense total from NON-VAT accounts
+    # -------------------------------
+    total_sql = f"""
         SELECT 
-            SUM(jea.debit_in_account_currency)
+            COALESCE(SUM(jea.debit_in_account_currency), 0)
         FROM 
             `tabJournal Entry Account` jea
         INNER JOIN 
@@ -353,7 +361,9 @@ def get_journal_entry_vat(filters):
             AND je.company = %(company)s
             {conditions}
             AND jea.account NOT IN ({vat_accounts_sql})
-    """, filters)[0][0] or 0
+    """
+
+    total = frappe.db.sql(total_sql, filters)[0][0] or 0
 
     return total, vat
 
