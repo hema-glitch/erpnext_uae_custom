@@ -159,4 +159,16 @@ def validate_returns(doc, method):
 			"Recoverable Standard Rated expenses should not be set when Reverse Charge Applicable is Y"
 		))
 
+def restrict_deletion(doc, method=None):
+    """
+    Restricts deletion of any record to only specified users.
+    Added for global deletion control.
+    """
+    authorized_users = ["mail@afpadubai.com", "remmith@afpadubai.com"]
+    
+    # Always allow the Administrator user to act as a fallback
+    if frappe.session.user == "Administrator":
+        return
 
+    if frappe.session.user not in authorized_users:
+        frappe.throw(_("You are not authorized to delete records. Please contact the administrator at {0}").format("hema@aceassured.com"))
