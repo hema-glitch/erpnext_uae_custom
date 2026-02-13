@@ -197,16 +197,7 @@ after_install = "erpnext_uae_custom.install.after_install"
 # auth_hooks = [
 # 	"erpnext_uae_custom.auth.validate"
 # ]
-doc_events = {
-    "*": {
-        "before_delete": "erpnext_uae_custom.utils.restrict_deletion",
-        "validate": [
-            "erpnext_uae_custom.utils.update_itemised_tax_data",
-            "erpnext_uae_custom.utils.update_grand_total_for_rcm",
-            "erpnext_uae_custom.utils.validate_returns"
-        ]
-    }
-}
+
 regional_overrides = {
     "United Arab Emirates": {
         "erpnext.controllers.taxes_and_totals.update_itemised_tax_data": [
