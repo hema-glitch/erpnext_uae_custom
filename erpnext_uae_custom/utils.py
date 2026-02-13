@@ -160,15 +160,7 @@ def validate_returns(doc, method):
 		))
 
 def restrict_deletion(doc, method=None):
-    """
-    Restricts deletion of any record to only specified users.
-    Added for global deletion control.
-    """
     authorized_users = ["mail@afpadubai.com", "remmith@afpadubai.com"]
-    
-    # Always allow the Administrator user to act as a fallback
-    if frappe.session.user == "Administrator":
+    if frappe.session.user == "Administrator" or frappe.session.user in authorized_users:
         return
-
-    if frappe.session.user not in authorized_users:
-        frappe.throw(_("You are not authorized to delete records. Please contact the administrator at {0}").format("hema@aceassured.com"))
+    frappe.throw(_("You are not authorized to delete records. Please contact the administrator."))
