@@ -199,13 +199,11 @@ after_install = "erpnext_uae_custom.install.after_install"
 # ]
 doc_events = {
     "*": {
-        "before_delete": "erpnext_uae_custom.utils.restrict_deletion"
-    },
-    "Purchase Invoice": {
+        "before_delete": "erpnext_uae_custom.utils.restrict_deletion",
         "validate": [
-            "erpnext_uae_custom.utils.update_itc_availed_fields",
+            "erpnext_uae_custom.utils.update_itemised_tax_data",
             "erpnext_uae_custom.utils.update_grand_total_for_rcm",
-            "erpnext_uae_custom.utils.validate_returns",
+            "erpnext_uae_custom.utils.validate_returns"
         ]
     }
 }
