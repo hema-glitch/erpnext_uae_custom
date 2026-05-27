@@ -1,0 +1,14 @@
+[project]
+name = "erpnext_uae_custom"
+authors = [
+    { name = "aceassured", email = "bharath@aceassured.com" }
+]
+description = "ERPNext UAE Custom App"
+requires-python = ">=3.10"
+version = "0.0.1"
+
+dependencies = []
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
