@@ -208,3 +208,8 @@ regional_overrides = {
         ]
     }
 }
+
+
+app_include_js = [
+    "/assets/erpnext_uae_custom/js/bank_reconciliation_tool_ace.js"
+]
